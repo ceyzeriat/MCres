@@ -2,7 +2,9 @@
 README
 setup.cfg
 setup.py
-astroobs/__init__.py
-astroobs/_core.py
-astroobs/obs.py
-astroobs/obsData.txt
+MCres/FakeSampler.py
+MCres/MCres.py
+MCres/__init__.py
+MCres/_core.py
+MCres/load.py
+MCres/version.py

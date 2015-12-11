@@ -4,7 +4,7 @@
 Easy stuff to process MCMC emcee results
 """
 
-__all__ = ['MCres', 'version', 'FakeSampler','load']
+#__all__ = ['MCres', 'version', 'FakeSampler','load']
 
 from MCres import MCres
 from FakeSampler import FakeSampler

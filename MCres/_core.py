@@ -38,12 +38,6 @@ class font:
 
 
 def quantile(x, q, weights=None):
-    """
-    Like numpy.percentile, but:
-    * Values of q are quantiles [0., 1.] rather than percentiles [0., 100.]
-    * scalar q not supported (q must be iterable)
-    * optional weights on x
-    """
     if weights is None:
         return np.percentile(x, [100. * qi for qi in q])
     else:
@@ -55,22 +49,9 @@ def quantile(x, q, weights=None):
 
 
 def bins_to_array(arr):
-    """
-    TBD
-
-    reciprocal function to array_to_bins
-
-    :param data: the data to pad, can be 1 to 3 dimensions
-    :type data: array
-    :returns: anti-padded data as ndarray
-
-    >>> import misc.funcs as funcs
-    >>> print func.bins_to_array([-0.5  2.5  4.5  6.   8. ])
-    [1,4,5,7]
-    """
     arr = np.asarray(arr)
-    if arr.size==1: raise Exception, "Size must be greater than one"
-    if arr.ndim!=1: raise Exception, "Dimension must be one"
+    if arr.size==1: raise Exception("Size must be greater than one")
+    if arr.ndim!=1: raise Exception("Dimension must be one")
     arr = np.r_[(arr[1]+arr[0])/2. ,arr[1:-1].copy()*2]
     arr[0]
     for i in np.arange(arr[1:].size)+1:
@@ -79,11 +60,6 @@ def bins_to_array(arr):
 
 
 def colorbar(cmap="jet", cm_min=0, cm_max=1):
-    """
-    cmap, norm, mappable = funcs.colorbar('jet', min, max)
-    plt.scatter(x, y, c, cmap=cmap, norm=norm)
-    cb = plt.colorbar(mappable)
-    """
     cmap = cm.get_cmap(cmap)
     norm = matplotlibpyplotNormalize(cm_min, cm_max)
     mappable = cm.ScalarMappable(cmap=cmap, norm=norm)
