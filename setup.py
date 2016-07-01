@@ -12,7 +12,7 @@ from distutils.core import setup
 setup(
     name = 'MCres',
     packages = ['MCres'],
-    version = '0.3beta',
+    version = '0.4beta',
     description = 'Provides simple filtering and visualization tools for Monte-Carlo simulation data',
     author = 'Guillaume Schworer',
     author_email = 'guillaume.schworer@obspm.fr',
