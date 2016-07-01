@@ -19,25 +19,32 @@ class MCres(object):
     """
     Sampler can be the emcee sampler or a path to a '*.res.fits' file
     paramstr is a list of (unique) string keywords that relate to each free parameter fitted in the emcee simulation. If left None, it will be set automatically to p1, p2, etc.
-    nwalker, nwalker, burnInIts are the emcee MCMC simulation parameters
+    nwalkers, nwalkers, burnInIts are the emcee MCMC simulation parameters
     """
-    def __init__(self, sampler, paramstr=None, nwalker=None, niters=None, burnInIts=None, **kwargs):
-        self._init(sampler=sampler, paramstr=paramstr, nwalker=nwalker, niters=niters, burnInIts=burnInIts, **kwargs)
+    def __init__(self, sampler, paramstr=None, nwalkers=None, niters=None, burnInIts=None):
+        self._init(sampler=sampler, paramstr=paramstr, nwalkers=nwalkers, niters=niters, burnInIts=burnInIts)
 
 
-    def _init(self, sampler=None, paramstr=None, nwalker=None, niters=None, burnInIts=None, **kwargs):
+    def _init(self, sampler=None, paramstr=None, nwalkers=None, niters=None, burnInIts=None):
         if paramstr is None:
             paramstr = [p+str(i) for i in range(sampler.flatchain.shape[1])]
         elif sampler.flatchain.shape[1]!=len(paramstr) or len(set(paramstr))!=len(paramstr):
             raise Exception("paramstr must be same size as parameter count and each element must be unique")
-        self.nwalker = nwalker if nwalker is not None else 0
-        self.niters = niters if niters is not None else 0
-        self.burnInIts = burnInIts if burnInIts is not None else 0
+        self.nwalkers = int(0 if nwalkers is None else nwalkers)
+        self.niters = int(0 if niters is None else niters)
+        self.burnInIts = int(0 if burnInIts is None else burnInIts)
         self._chaindtype = [(str(item), np.float64) for item in paramstr]
-        self.chainraw = np.zeros(sampler.flatchain.shape[0], dtype=self._chaindtype)
+        dum = np.zeros(sampler.flatchain.shape[0], dtype=self._chaindtype)
         for i, item in enumerate(paramstr):
-            self.chainraw[item] = sampler.flatchain[:,i].copy()
-        self.lnprob = np.ma.array(sampler.flatlnprobability)
+            dum[item] = sampler.flatchain[:,i].copy()
+        if hasattr(self, 'chainraw'): # if already has some iterations
+            self.chainraw = np.hstack((self.chainraw, dum))
+        else:
+            self.chainraw = dum
+        if hasattr(self, 'lnprob'): # if already has some iterations
+            self.lnprob = np.ma.array(np.hstack((self.lnprob.data, sampler.flatlnprobability)))
+        else: 
+            self.lnprob = np.ma.array(sampler.flatlnprobability)
         self.chain = np.ma.array(self.chainraw)
         self._infmask = np.logical_not(self.lnprob.data > -np.inf)
         self.paramstr = paramstr
@@ -46,7 +53,6 @@ class MCres(object):
 
 
     def _info(self):
-        nil=np.array([])
         return _core.font.blue+"<MCMC Fit>%s\n %s steps\n params: %s"%(_core.font.normal, self.chainraw.shape[0], self.paramstr)
     def __repr__(self):
         return self._info()
@@ -127,7 +133,7 @@ class MCres(object):
 
     @property
     def chainraw2D(self):
-        return self.chainraw.view(np.float64).reshape(self.chainraw.shape + (-1,))
+        return self.chainraw.view(np.float64).reshape(self.chainraw.shape + (-1,)).data
     @chain2D.setter
     def chainraw2D(self, value):
         raise Exception("Read-only.")
@@ -152,13 +158,14 @@ class MCres(object):
             params = self.paramstr
         else:
             paramiter = []
-            for item in getattr(params, '__iter__', [params].__iter__)():
+            if not hasattr(params, '__iter__'): params = [params]
+            for item in params:
                 if item not in self.paramstr:
-                    print("You must choose each element of params among %s" % self.paramstr)
+                    print("Error with %s, you must choose each element of params among %s" % (item, self.paramstr))
                 else:
                     paramiter.append((self.paramstr.index(item), item))
         res = []
-        q = [float(best)] + map(float, q)
+        q = [float(best)] + list(map(float, q))
         if plot:
             plt.figure()
             plt_x = int(np.sqrt(len(params)))
@@ -262,7 +269,7 @@ class MCres(object):
         hdu = pf.PrimaryHDU()
         hdu.header.set('EXT', 'MCRES', comment='MCres object')
         hdu.header.set('DATE', strftime('%Y%m%dT%H%M%S'), comment='Creation Date')
-        hdu.header.set('NWALKER', int(self.nwalker), comment='Number of walkers used')
+        hdu.header.set('NWALKER', int(self.nwalkers), comment='Number of walkers used')
         hdu.header.set('NBURN', int(self.burnInIts), comment='Number of burn-in interation used')
         hdu.header.set('NITER', int(self.niters), comment='Number of interations used')
         hdu.header.set('NPARAM', len(self.paramstr), comment='Number of parameters')
@@ -271,7 +278,7 @@ class MCres(object):
 
         hdu.data = np.concatenate((self.chainraw2D.data, self.lnprob.data.reshape((-1, 1))), axis=1)
 
-        hdu.header.add_comment('Data shape is (n, p+1). n is the number of steps (nwalker*niter), p is the number of free parameters. data[0:-1] contains the values of all steps. data[-1] is the calculated log-likelihood.')
+        hdu.header.add_comment('Data shape is (n, p+1). n is the number of steps (nwalkers*niter), p is the number of free parameters. data[0:-1] contains the values of all steps. data[-1] is the calculated log-likelihood.')
         hdu.header.add_comment('Written by Guillaume SCHWORER')
         hdulist.append(hdu)
 
