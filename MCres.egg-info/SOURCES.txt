@@ -10,4 +10,5 @@ MCres/load.py
 MCres.egg-info/PKG-INFO
 MCres.egg-info/SOURCES.txt
 MCres.egg-info/dependency_links.txt
+MCres.egg-info/requires.txt
 MCres.egg-info/top_level.txt
