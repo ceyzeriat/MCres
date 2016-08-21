@@ -24,7 +24,6 @@
 #
 ###############################################################################
 
-class FakeSampler(object):
-    def __init__(self, flatchain, flatlnprobability):
-        self.flatchain = flatchain
-        self.flatlnprobability = flatlnprobability
+
+__version__ = "0.5.1"
+__major__, __minor__, __micro__ = list(map(int, __version__.split('.')))
