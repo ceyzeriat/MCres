@@ -34,6 +34,8 @@ setup(
     url = 'https://github.com/ceyzeriat/MCres/',
     download_url = 'https://github.com/ceyzeriat/MCres/tree/master/dist',
     keywords = ['emcee','processing','data','big data','corner','cornerplot','triangle','plot'],
+    package_data={"": ["README.rst", "LICENSE"]},
+    install_requires=["corner"],
     classifiers = [
             'Development Status :: 4 - Beta',
             'Environment :: Console',
